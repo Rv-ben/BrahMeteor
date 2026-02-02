@@ -54,7 +54,14 @@ dependencies {
 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
 	modImplementation "net.fabricmc:fabric-language-kotlin:${project.fabric_kotlin_version}"
 
+	// Unit testing (pure Kotlin modules like intercept math)
+	testImplementation "org.jetbrains.kotlin:kotlin-test"
 
+
+}
+
+tasks.withType(Test).configureEach {
+	useJUnitPlatform()
 }
 
 processResources {

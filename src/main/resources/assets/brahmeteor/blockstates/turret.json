@@ -1,0 +1,24 @@
+{
+  "variants": {
+    "facing=north,part=controller": { "model": "brahmeteor:block/turret_controller" },
+    "facing=east,part=controller": { "model": "brahmeteor:block/turret_controller", "y": 90 },
+    "facing=south,part=controller": { "model": "brahmeteor:block/turret_controller", "y": 180 },
+    "facing=west,part=controller": { "model": "brahmeteor:block/turret_controller", "y": 270 },
+
+    "facing=north,part=x1": { "model": "brahmeteor:block/turret_x1" },
+    "facing=east,part=x1": { "model": "brahmeteor:block/turret_x1", "y": 90 },
+    "facing=south,part=x1": { "model": "brahmeteor:block/turret_x1", "y": 180 },
+    "facing=west,part=x1": { "model": "brahmeteor:block/turret_x1", "y": 270 },
+
+    "facing=north,part=z1": { "model": "brahmeteor:block/turret_z1" },
+    "facing=east,part=z1": { "model": "brahmeteor:block/turret_z1", "y": 90 },
+    "facing=south,part=z1": { "model": "brahmeteor:block/turret_z1", "y": 180 },
+    "facing=west,part=z1": { "model": "brahmeteor:block/turret_z1", "y": 270 },
+
+    "facing=north,part=x1z1": { "model": "brahmeteor:block/turret_x1z1" },
+    "facing=east,part=x1z1": { "model": "brahmeteor:block/turret_x1z1", "y": 90 },
+    "facing=south,part=x1z1": { "model": "brahmeteor:block/turret_x1z1", "y": 180 },
+    "facing=west,part=x1z1": { "model": "brahmeteor:block/turret_x1z1", "y": 270 }
+  }
+}
+

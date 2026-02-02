@@ -12,15 +12,19 @@ import net.minecraft.world.level.block.entity.BlockEntityType
 import skyline.brahmeteor.Constants
 import skyline.brahmeteor.entities.FallingMeteor
 import skyline.brahmeteor.entities.MeteorBlockEntity
+import skyline.brahmeteor.entities.TurretAmmoProjectile
+import skyline.brahmeteor.entities.TurretBlockEntity
 
 object ModEntities {
     lateinit var FALLING_METEOR: EntityType<FallingMeteor>
+    lateinit var TURRET_AMMO_PROJECTILE: EntityType<TurretAmmoProjectile>
 
     lateinit var METEOR_BLOCK_ENTITY: BlockEntityType<MeteorBlockEntity>
+    lateinit var TURRET_BLOCK_ENTITY: BlockEntityType<TurretBlockEntity>
 
     fun initialize() {
 
-        val key = ResourceKey.create(Registries.ENTITY_TYPE, Identifier.fromNamespaceAndPath(Constants.MOD_ID, "falling_meteor"))
+        val fallingMeteorKey = ResourceKey.create(Registries.ENTITY_TYPE, Identifier.fromNamespaceAndPath(Constants.MOD_ID, "falling_meteor"))
 
         FALLING_METEOR = Registry.register(
             BuiltInRegistries.ENTITY_TYPE,
@@ -29,13 +33,30 @@ object ModEntities {
                 .sized(0.98F, 0.98F)
                 .clientTrackingRange(10)
                 .updateInterval(1)  // Update every tick for smooth movement
-                .build(key)
+                .build(fallingMeteorKey)
+        )
+
+        val turretAmmoKey = ResourceKey.create(Registries.ENTITY_TYPE, Identifier.fromNamespaceAndPath(Constants.MOD_ID, "turret_ammo"))
+        TURRET_AMMO_PROJECTILE = Registry.register(
+            BuiltInRegistries.ENTITY_TYPE,
+            Identifier.fromNamespaceAndPath(Constants.MOD_ID, "turret_ammo"),
+            EntityType.Builder.of(::TurretAmmoProjectile, MobCategory.MISC)
+                .sized(0.5f, 0.5f)
+                .clientTrackingRange(128)
+                .updateInterval(1)
+                .build(turretAmmoKey)
         )
 
         METEOR_BLOCK_ENTITY = Registry.register(
             BuiltInRegistries.BLOCK_ENTITY_TYPE,
             Identifier.fromNamespaceAndPath(Constants.MOD_ID, "meteor"),
             FabricBlockEntityTypeBuilder.create(::MeteorBlockEntity, ModBlocks.METEOR_BLOCK).build()
+        )
+
+        TURRET_BLOCK_ENTITY = Registry.register(
+            BuiltInRegistries.BLOCK_ENTITY_TYPE,
+            Identifier.fromNamespaceAndPath(Constants.MOD_ID, "turret"),
+            FabricBlockEntityTypeBuilder.create(::TurretBlockEntity, ModBlocks.TURRET).build()
         )
     }
 }

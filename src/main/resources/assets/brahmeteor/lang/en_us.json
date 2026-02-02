@@ -1,4 +1,5 @@
 {
   "block.brahmeteor.meteor": "Meteor Block",
+  "block.brahmeteor.turret": "Meteor Defense Turret",
   "entity.brahmeteor.falling_meteor": "Falling Meteor"
 }

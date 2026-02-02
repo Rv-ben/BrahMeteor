@@ -7,29 +7,42 @@ import net.minecraft.core.registries.Registries
 import net.minecraft.resources.Identifier
 import net.minecraft.resources.ResourceKey
 import net.minecraft.world.item.CreativeModeTabs
+import net.minecraft.world.item.BlockItem
 import net.minecraft.world.item.Item
 import net.minecraft.world.level.block.Block
 import net.minecraft.world.level.block.state.BlockBehaviour
 import skyline.brahmeteor.Constants
 import skyline.brahmeteor.blocks.MeteorBlock
+import skyline.brahmeteor.blocks.TurretBlock
 import skyline.brahmeteor.items.Meteor
 import java.util.function.Function
 
 
 object ModBlocks {
     lateinit var METEOR_BLOCK: Block
+    lateinit var TURRET: Block
 
     fun initialize() {
         METEOR_BLOCK = register(
             "meteor",
             {p -> MeteorBlock(p)},
             BlockBehaviour.Properties.of().lightLevel { 15 },
-            true
+            shouldRegisterItem = true,
+            blockItemFactory = { block, props -> Meteor(block, props) }
+        )
+
+        TURRET = register(
+            "turret",
+            { p -> TurretBlock(p) },
+            BlockBehaviour.Properties.of().strength(3.5f),
+            shouldRegisterItem = true,
+            blockItemFactory = { block, props -> BlockItem(block, props) }
         )
 
         // Add to creative tabst
         ItemGroupEvents.modifyEntriesEvent(CreativeModeTabs.NATURAL_BLOCKS).register { entries ->
             entries.accept(METEOR_BLOCK)
+            entries.accept(TURRET)
         }
     }
 
@@ -37,7 +50,8 @@ object ModBlocks {
         name: String,
         blockFactory: Function<BlockBehaviour.Properties, Block>,
         settings: BlockBehaviour.Properties,
-        shouldRegisterItem: Boolean
+        shouldRegisterItem: Boolean,
+        blockItemFactory: (Block, Item.Properties) -> Item = { block, props -> BlockItem(block, props) }
     ): Block {
         // Create a registry key for the block
         val blockKey = keyOfBlock(name)
@@ -51,7 +65,7 @@ object ModBlocks {
             // can be the same.
             val itemKey = keyOfItem(name)
 
-            val blockItem = Meteor(block, Item.Properties().setId(itemKey).useBlockDescriptionPrefix())
+            val blockItem = blockItemFactory(block, Item.Properties().setId(itemKey).useBlockDescriptionPrefix())
             Registry.register(BuiltInRegistries.ITEM, itemKey, blockItem)
         }
 

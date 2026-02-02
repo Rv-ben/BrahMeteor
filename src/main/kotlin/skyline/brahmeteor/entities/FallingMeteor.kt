@@ -9,6 +9,7 @@ import net.minecraft.world.damagesource.DamageSource
 import net.minecraft.world.entity.Entity
 import net.minecraft.world.entity.EntityType
 import net.minecraft.world.entity.MoverType
+import net.minecraft.world.entity.Entity.RemovalReason
 import net.minecraft.world.level.Level
 import net.minecraft.world.level.Level.ExplosionInteraction
 import net.minecraft.world.level.block.Block
@@ -47,7 +48,16 @@ class FallingMeteor : Entity {
     private var meteorSizeLocal: Int = 1
     var time: Int = 0
     var explosionDuration = 0;
-    var testAlc: Double = .0012
+    var testAlc: Double = .00012
+
+    /**
+     * Exposed kinematics inputs so other systems (e.g. turrets) can predict motion accurately.
+     * This meteor's velocity is updated each tick by `calcCurrentVelocity(time)` and then applied
+     * directly to movement.
+     */
+    fun getKinematicsTimeTicks(): Int = time
+    fun getKinematicsAccelFactor(): Double = testAlc
+    fun getKinematicsCurrentVelocity(): Vec3 = currentVelocity
 
     // Primary constructor for spawning (required for entity type registration)
     constructor(entityType: EntityType<out FallingMeteor>, level: Level) : super(entityType, level)
@@ -123,6 +133,15 @@ class FallingMeteor : Entity {
         
         // Apply drag like FallingBlockEntity (but we reset velocity next tick anyway)
         deltaMovement = deltaMovement.scale(0.98)
+    }
+
+    override fun remove(removalReason: RemovalReason) {
+        // Turrets (and other systems) can discard meteors midair; ensure we clean up any
+        // temporary `Blocks.LIGHT` left behind.
+        if (!level().isClientSide) {
+            removeDynamicLight()
+        }
+        super.remove(removalReason)
     }
 
     fun setStartPos(pos: BlockPos) {
