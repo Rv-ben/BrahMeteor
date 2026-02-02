@@ -1,0 +1,9 @@
+{
+  "variants": {
+    "size=1": { "model": "brahmeteor:block/meteor" },
+    "size=2": { "model": "brahmeteor:block/meteor" },
+    "size=3": { "model": "brahmeteor:block/meteor" },
+    "size=4": { "model": "brahmeteor:block/meteor" },
+    "size=5": { "model": "brahmeteor:block/meteor" }
+  }
+}
