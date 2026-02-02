@@ -50,6 +50,24 @@ class TurretBlockEntity(pos: BlockPos, state: BlockState) : BlockEntity(ModEntit
         fun serverTick(level: Level, pos: BlockPos, state: BlockState, be: TurretBlockEntity) {
             if (level.isClientSide) return
 
+            val box = AABB(pos).inflate(RANGE_BLOCKS)
+
+            // 1x2 turret: controller is the lower block. Aim/render around the top block center.
+            val center = Vec3(
+                pos.x + 0.5,
+                pos.y + 1.5,
+                pos.z + 0.5
+            )
+
+            val meteors = level.getEntitiesOfClass(FallingMeteor::class.java, box).filterIndexed {
+                    _,
+                    meteor -> meteor.getKinematicsTimeTicks() > 10 && ( (meteor.y - center.y) < 50)
+            }
+
+            if (meteors.isEmpty()) return
+
+            val target = meteors.minByOrNull { it.distanceToSqr(center.x, center.y, center.z) } ?: return
+
             // Decay recoil every tick (server authoritative; client receives snapshots).
             if (be.recoilTicks > 0) {
                 be.recoilTicks--
@@ -99,23 +117,6 @@ class TurretBlockEntity(pos: BlockPos, state: BlockState) : BlockEntity(ModEntit
             if (ammo.isEmpty) return
 
             val facing = state.getValue(TurretBlock.FACING)
-
-            // 1x2 turret: controller is the lower block. Aim/render around the top block center.
-            val center = Vec3(
-                pos.x + 0.5,
-                pos.y + 1.5,
-                pos.z + 0.5
-            )
-            val box = AABB(pos).inflate(RANGE_BLOCKS)
-
-            val meteors = level.getEntitiesOfClass(FallingMeteor::class.java, box).filterIndexed {
-                _,
-                meteor -> meteor.getKinematicsTimeTicks() > 10 && ( (meteor.y - center.y) < 50)
-            }
-
-            if (meteors.isEmpty()) return
-
-            val target = meteors.minByOrNull { it.distanceToSqr(center.x, center.y, center.z) } ?: return
 
             // Start burst at tick t, then t+1, t+2.
             be.burstTargetId = target.id

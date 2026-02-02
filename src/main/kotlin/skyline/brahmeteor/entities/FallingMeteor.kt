@@ -9,7 +9,6 @@ import net.minecraft.world.damagesource.DamageSource
 import net.minecraft.world.entity.Entity
 import net.minecraft.world.entity.EntityType
 import net.minecraft.world.entity.MoverType
-import net.minecraft.world.entity.Entity.RemovalReason
 import net.minecraft.world.level.Level
 import net.minecraft.world.level.Level.ExplosionInteraction
 import net.minecraft.world.level.block.Block
@@ -82,9 +81,8 @@ class FallingMeteor : Entity {
         // Store size (from state) so renderer + landing block match
         val size = if (state.hasProperty(MeteorBlock.SIZE)) state.getValue(MeteorBlock.SIZE) else 1
         setMeteorSize(size)
-        
-        // Random downward velocity (negative Y) between -0.3 and -0.8 blocks/tick
-        downwardSpeed = -(Random.nextDouble() * getMeteorSize() + 0.3)
+
+        downwardSpeed = -(Random.nextDouble() * getMeteorSize())
         // Random horizontal drift
         val horizontalDrift = 2
         val xDrift = (Random.nextDouble() - 0.5 ) * horizontalDrift
@@ -172,7 +170,7 @@ class FallingMeteor : Entity {
 
     fun getMeteorExplosionSize() : Float {
 
-        val momentum = (-1 * downwardSpeed) * getMeteorSize();
+        val momentum = (-1 * downwardSpeed ) * getMeteorSize();
         val ex = 4 * log(momentum).toFloat()
         return ex;
     }
