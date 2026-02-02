@@ -23,6 +23,9 @@ import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.block.state.StateDefinition
 import net.minecraft.world.level.block.state.properties.BlockStateProperties
 import net.minecraft.world.level.block.state.properties.EnumProperty
+import net.minecraft.world.phys.shapes.CollisionContext
+import net.minecraft.world.phys.shapes.Shapes
+import net.minecraft.world.phys.shapes.VoxelShape
 import net.minecraft.util.StringRepresentable
 import skyline.brahmeteor.entities.TurretBlockEntity
 import skyline.brahmeteor.registry.ModEntities
@@ -34,22 +37,41 @@ class TurretBlock(settings: BlockBehaviour.Properties) : BaseEntityBlock(setting
         val PART: EnumProperty<TurretPart> = EnumProperty.create("part", TurretPart::class.java)
     }
 
+    /** 1x2 vertical turret parts. Controller is the lower block. */
     enum class TurretPart(private val serialized: String) : StringRepresentable {
-        CONTROLLER("controller"),
-        X1("x1"),
-        Z1("z1"),
-        X1Z1("x1z1");
+        LOWER("lower"),
+        UPPER("upper");
 
         override fun getSerializedName(): String = serialized
+
+        fun isController(): Boolean = this == LOWER
     }
 
     init {
-        registerDefaultState(stateDefinition.any().setValue(FACING, Direction.NORTH).setValue(PART, TurretPart.CONTROLLER))
+        registerDefaultState(stateDefinition.any().setValue(FACING, Direction.NORTH).setValue(PART, TurretPart.LOWER))
     }
 
     override fun codec(): MapCodec<out BaseEntityBlock> = simpleCodec(::TurretBlock)
 
     override fun getRenderShape(state: BlockState): RenderShape = RenderShape.MODEL
+
+    override fun getShape(state: BlockState, level: net.minecraft.world.level.BlockGetter, pos: BlockPos, context: CollisionContext): VoxelShape {
+        return if (state.getValue(PART) == TurretPart.UPPER) {
+            // Smaller selection box so you don't see a big cube outline.
+            box(3.0, 0.0, 3.0, 13.0, 10.0, 13.0)
+        } else {
+            Shapes.block()
+        }
+    }
+
+    override fun getCollisionShape(state: BlockState, level: net.minecraft.world.level.BlockGetter, pos: BlockPos, context: CollisionContext): VoxelShape {
+        return getShape(state, level, pos, context)
+    }
+
+    override fun getOcclusionShape(state: BlockState): VoxelShape {
+        // Critical: make the UPPER part not occlude, so the LOWER top face renders.
+        return if (state.getValue(PART) == TurretPart.UPPER) Shapes.empty() else Shapes.block()
+    }
 
     override fun createBlockStateDefinition(builder: StateDefinition.Builder<Block, BlockState>) {
         builder.add(FACING, PART)
@@ -73,27 +95,24 @@ class TurretBlock(settings: BlockBehaviour.Properties) : BaseEntityBlock(setting
 
         return defaultBlockState()
             .setValue(FACING, facing)
-            .setValue(PART, TurretPart.CONTROLLER)
+            .setValue(PART, TurretPart.LOWER)
     }
 
     override fun setPlacedBy(level: Level, pos: BlockPos, state: BlockState, placer: LivingEntity?, itemStack: ItemStack) {
         super.setPlacedBy(level, pos, state, placer, itemStack)
         if (level.isClientSide) return
-        if (state.getValue(PART) != TurretPart.CONTROLLER) return
+        if (!state.getValue(PART).isController()) return
 
         val facing = state.getValue(FACING)
         val offsets = structureOffsets(facing)
 
-        // Place the 3 non-controller parts. They must NOT recurse into placing the structure.
-        for ((part, offset) in offsets.entries) {
-            if (part == TurretPart.CONTROLLER) continue
-            val targetPos = pos.offset(offset)
-            level.setBlock(
-                targetPos,
-                defaultBlockState().setValue(FACING, facing).setValue(PART, part),
-                Block.UPDATE_ALL
-            )
-        }
+        // Place the upper block.
+        val upperPos = pos.above()
+        level.setBlock(
+            upperPos,
+            defaultBlockState().setValue(FACING, facing).setValue(PART, TurretPart.UPPER),
+            Block.UPDATE_ALL
+        )
     }
 
     override fun playerWillDestroy(level: Level, pos: BlockPos, state: BlockState, player: Player): BlockState {
@@ -109,15 +128,10 @@ class TurretBlock(settings: BlockBehaviour.Properties) : BaseEntityBlock(setting
                 }
 
                 val facing = state.getValue(FACING)
-                val offsets = structureOffsets(facing)
-
-                // Remove the 3 other parts unconditionally.
-                for ((_, offset) in offsets.entries) {
-                    val p = controllerPos.offset(offset)
-                    if (p == controllerPos) continue
-                    if (level.getBlockState(p).block == this) {
-                        level.setBlock(p, Blocks.AIR.defaultBlockState(), Block.UPDATE_ALL)
-                    }
+                // Remove the other part (upper).
+                val upperPos = controllerPos.above()
+                if (level.getBlockState(upperPos).block == this) {
+                    level.setBlock(upperPos, Blocks.AIR.defaultBlockState(), Block.UPDATE_ALL)
                 }
 
                 // If the broken block was not the controller, remove the controller too.
@@ -131,7 +145,7 @@ class TurretBlock(settings: BlockBehaviour.Properties) : BaseEntityBlock(setting
     }
 
     override fun newBlockEntity(blockPos: BlockPos, blockState: BlockState): BlockEntity? {
-        return if (blockState.getValue(PART) == TurretPart.CONTROLLER) {
+        return if (blockState.getValue(PART).isController()) {
             TurretBlockEntity(blockPos, blockState)
         } else {
             null
@@ -140,7 +154,7 @@ class TurretBlock(settings: BlockBehaviour.Properties) : BaseEntityBlock(setting
 
     override fun <T : BlockEntity> getTicker(level: Level, state: BlockState, type: BlockEntityType<T>): BlockEntityTicker<T>? {
         if (level.isClientSide) return null
-        if (state.getValue(PART) != TurretPart.CONTROLLER) return null
+        if (!state.getValue(PART).isController()) return null
         @Suppress("UNCHECKED_CAST")
         return if (type == ModEntities.TURRET_BLOCK_ENTITY) {
             val ticker: BlockEntityTicker<TurretBlockEntity> = BlockEntityTicker { lvl, pos, st, be ->
@@ -167,34 +181,19 @@ class TurretBlock(settings: BlockBehaviour.Properties) : BaseEntityBlock(setting
     }
 
     private fun structureOffsets(facing: Direction): Map<TurretPart, BlockPos> {
-        // Controller is the origin corner.
-        // X1 is to the "right" of facing, Z1 is "forward" (facing), X1Z1 is right+forward.
-        val right = facing.getClockWise()
-        val forward = facing
         return linkedMapOf(
-            TurretPart.CONTROLLER to BlockPos.ZERO,
-            TurretPart.X1 to BlockPos(right.getStepX(), 0, right.getStepZ()),
-            TurretPart.Z1 to BlockPos(forward.getStepX(), 0, forward.getStepZ()),
-            TurretPart.X1Z1 to BlockPos(right.getStepX() + forward.getStepX(), 0, right.getStepZ() + forward.getStepZ())
+            TurretPart.LOWER to BlockPos.ZERO,
+            TurretPart.UPPER to BlockPos(0, 1, 0)
         )
     }
 
     private fun getControllerPos(level: Level, pos: BlockPos, state: BlockState): BlockPos? {
         // If controller already removed, bail.
         if (state.block != this) return null
-        val facing = state.getValue(FACING)
-        val right = facing.getClockWise()
-        val forward = facing
-
-        val offsetToController = when (state.getValue(PART)) {
-            TurretPart.CONTROLLER -> BlockPos.ZERO
-            TurretPart.X1 -> BlockPos(-right.getStepX(), 0, -right.getStepZ())
-            TurretPart.Z1 -> BlockPos(-forward.getStepX(), 0, -forward.getStepZ())
-            TurretPart.X1Z1 -> BlockPos(-(right.getStepX() + forward.getStepX()), 0, -(right.getStepZ() + forward.getStepZ()))
-        }
-        val controllerPos = pos.offset(offsetToController)
+        val part = state.getValue(PART)
+        val controllerPos = if (part == TurretPart.LOWER) pos else pos.below()
         val controllerState = level.getBlockState(controllerPos)
-        return if (controllerState.block == this && controllerState.getValue(PART) == TurretPart.CONTROLLER) controllerPos else null
+        return if (controllerState.block == this && controllerState.getValue(PART).isController()) controllerPos else null
     }
 }
 

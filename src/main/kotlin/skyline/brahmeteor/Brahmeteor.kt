@@ -7,6 +7,7 @@ import skyline.brahmeteor.eventHandlers.WorldMeteorSpawner
 import skyline.brahmeteor.registry.ModBlocks
 import skyline.brahmeteor.registry.ModEntities
 import skyline.brahmeteor.registry.ModItems
+import skyline.brahmeteor.registry.ModSounds
 
 
 object Brahmeteor : ModInitializer {
@@ -22,6 +23,7 @@ object Brahmeteor : ModInitializer {
 		ModBlocks.initialize()
 		ModEntities.initialize()
 		ModItems.initialize()
+		ModSounds.initialize()
 
 		ServerTickEvents.START_SERVER_TICK.register { server -> WorldMeteorSpawner.Spawn(server) }
 	}

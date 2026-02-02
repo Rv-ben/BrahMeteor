@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:block/cube_all",
+  "textures": {
+    "all": "brahmeteor:block/turret_base"
+  }
+}
+

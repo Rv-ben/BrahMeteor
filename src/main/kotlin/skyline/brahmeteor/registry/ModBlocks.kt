@@ -21,6 +21,8 @@ import java.util.function.Function
 object ModBlocks {
     lateinit var METEOR_BLOCK: Block
     lateinit var TURRET: Block
+    lateinit var TURRET_HEAD: Block
+    lateinit var TURRET_BARREL: Block
 
     fun initialize() {
         METEOR_BLOCK = register(
@@ -34,9 +36,25 @@ object ModBlocks {
         TURRET = register(
             "turret",
             { p -> TurretBlock(p) },
-            BlockBehaviour.Properties.of().strength(3.5f),
+            // noOcclusion prevents face culling issues for our 2-block-tall model.
+            BlockBehaviour.Properties.of().strength(3.5f).noOcclusion(),
             shouldRegisterItem = true,
             blockItemFactory = { block, props -> BlockItem(block, props) }
+        )
+
+        // Internal-only blocks used for rendering the animated turret head/barrel.
+        // No items, not added to creative tabs.
+        TURRET_HEAD = register(
+            "turret_head",
+            { p -> Block(p) },
+            BlockBehaviour.Properties.of().strength(3.5f),
+            shouldRegisterItem = false
+        )
+        TURRET_BARREL = register(
+            "turret_barrel",
+            { p -> Block(p) },
+            BlockBehaviour.Properties.of().strength(3.5f),
+            shouldRegisterItem = false
         )
 
         // Add to creative tabst

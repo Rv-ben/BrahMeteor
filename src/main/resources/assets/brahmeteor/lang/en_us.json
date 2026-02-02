@@ -1,5 +1,7 @@
 {
   "block.brahmeteor.meteor": "Meteor Block",
   "block.brahmeteor.turret": "Meteor Defense Turret",
-  "entity.brahmeteor.falling_meteor": "Falling Meteor"
+  "entity.brahmeteor.falling_meteor": "Falling Meteor",
+  "subtitles.brahmeteor.turret_shot": "Turret fires",
+  "subtitles.brahmeteor.turret_servo": "Turret swivels"
 }

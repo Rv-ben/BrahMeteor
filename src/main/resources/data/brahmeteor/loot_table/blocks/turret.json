@@ -15,7 +15,7 @@
           "condition": "minecraft:block_state_property",
           "block": "brahmeteor:turret",
           "properties": {
-            "part": "controller"
+            "part": "lower"
           }
         },
         {

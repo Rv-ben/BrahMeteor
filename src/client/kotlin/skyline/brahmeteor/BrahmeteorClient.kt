@@ -6,10 +6,9 @@ import net.minecraft.client.renderer.entity.EntityRenderers
 import net.minecraft.client.renderer.entity.ThrownItemRenderer
 import skyline.brahmeteor.entities.MeteorBlockEntity
 import skyline.brahmeteor.entities.TurretAmmoProjectile
+import skyline.brahmeteor.entities.TurretBlockEntity
 import skyline.brahmeteor.registry.ModEntities
-import skyline.brahmeteor.renderer.FallingMeteorRenderer
-import skyline.brahmeteor.renderer.MeteorBlockRenderState
-import skyline.brahmeteor.renderer.MeteorBlockRenderer
+import skyline.brahmeteor.renderer.*
 
 object BrahmeteorClient : ClientModInitializer {
 	override fun onInitializeClient() {
@@ -23,6 +22,10 @@ object BrahmeteorClient : ClientModInitializer {
 			{
 				p -> MeteorBlockRenderer(p)
 			}
+		)
+		BlockEntityRenderers.register<TurretBlockEntity, TurretBlockRenderState>(
+			ModEntities.TURRET_BLOCK_ENTITY,
+			{ p -> TurretBlockRenderer(p) }
 		)
 	}
 }

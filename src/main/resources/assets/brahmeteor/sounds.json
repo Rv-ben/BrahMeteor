@@ -1,0 +1,17 @@
+{
+  "turret_shot": {
+    "subtitle": "subtitles.brahmeteor.turret_shot",
+    "sounds": [
+      { "name": "brahmeteor:turret/turret_shot1", "stream": false },
+      { "name": "brahmeteor:turret/turret_shot2", "stream": false },
+      { "name": "brahmeteor:turret/turret_shot3", "stream": false }
+    ]
+  },
+  "turret_servo": {
+    "subtitle": "subtitles.brahmeteor.turret_servo",
+    "sounds": [
+      { "name": "brahmeteor:turret/turret_servo1", "stream": false }
+    ]
+  }
+}
+

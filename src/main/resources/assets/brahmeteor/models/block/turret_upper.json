@@ -1,0 +1,21 @@
+{
+  "textures": {
+    "particle": "brahmeteor:block/turret_base",
+    "base": "brahmeteor:block/turret_base"
+  },
+  "elements": [
+    {
+      "from": [3, 0, 3],
+      "to": [13, 10, 13],
+      "faces": {
+        "north": {"uv": [3, 0, 13, 10], "texture": "#base"},
+        "south": {"uv": [3, 0, 13, 10], "texture": "#base"},
+        "west": {"uv": [3, 0, 13, 10], "texture": "#base"},
+        "east": {"uv": [3, 0, 13, 10], "texture": "#base"},
+        "up": {"uv": [3, 3, 13, 13], "texture": "#base"},
+        "down": {"uv": [3, 3, 13, 13], "texture": "#base"}
+      }
+    }
+  ]
+}
+
